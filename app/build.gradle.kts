@@ -14,11 +14,11 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    namespace = "com.muedsa.tvbox.demoplugin"
+    namespace = "com.muedsa.tvbox.libvio"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.muedsa.tvbox.demoplugin"
+        applicationId = "com.muedsa.tvbox.libvio"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

@@ -1,9 +1,9 @@
-package com.muedsa.tvbox.demoplugin.service
+package com.muedsa.tvbox.libvio.service
 
 import com.muedsa.tvbox.api.data.MediaCardType
-import com.muedsa.tvbox.demoplugin.TestPlugin
-import com.muedsa.tvbox.demoplugin.checkMediaCard
-import com.muedsa.tvbox.demoplugin.checkMediaCardRow
+import com.muedsa.tvbox.libvio.TestPlugin
+import com.muedsa.tvbox.libvio.checkMediaCard
+import com.muedsa.tvbox.libvio.checkMediaCardRow
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -13,7 +13,7 @@ class MediaDetailServiceTest {
 
     @Test
     fun getDetailData_test() = runTest{
-        val detail = service.getDetailData("17998", "17998")
+        val detail = service.getDetailData("/detail/714891450.html", "/detail/714891450.html")
         check(detail.id.isNotEmpty())
         check(detail.title.isNotEmpty())
         check(detail.detailUrl.isNotEmpty())
@@ -38,7 +38,7 @@ class MediaDetailServiceTest {
 
     @Test
     fun getEpisodePlayInfo_test() = runTest{
-        val detail = service.getDetailData("17998", "17998")
+        val detail = service.getDetailData("/detail/714891450.html", "/detail/714891450.html")
         check(detail.playSourceList.isNotEmpty())
         check(detail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
         val mediaPlaySource = detail.playSourceList[0]
