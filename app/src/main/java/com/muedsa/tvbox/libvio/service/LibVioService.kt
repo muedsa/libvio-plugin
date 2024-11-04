@@ -1,6 +1,6 @@
 package com.muedsa.tvbox.libvio.service
 
-import com.muedsa.tvbox.libvio.feignChrome
+import com.muedsa.tvbox.tool.feignChrome
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jsoup.Jsoup

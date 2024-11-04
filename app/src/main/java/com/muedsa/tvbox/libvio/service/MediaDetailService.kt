@@ -9,22 +9,24 @@ import com.muedsa.tvbox.api.data.MediaPlaySource
 import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.libvio.LibVidConst
-import com.muedsa.tvbox.libvio.feignChrome
 import com.muedsa.tvbox.libvio.model.PlayerAAAA
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.decodeBase64ToStr
+import com.muedsa.tvbox.tool.feignChrome
 import kotlinx.coroutines.delay
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.Jsoup
+import java.net.CookieStore
 import java.util.StringJoiner
 
 class MediaDetailService(
-    private val libVioService: LibVioService
+    private val libVioService: LibVioService,
+    private val cookieStore: CookieStore
 ) : IMediaDetailService {
 
     override suspend fun getDetailData(mediaId: String, detailUrl: String): MediaDetail {
         val body = Jsoup.connect("${libVioService.getSiteUrl()}$detailUrl")
-            .feignChrome()
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val contentEl =
@@ -117,7 +119,7 @@ class MediaDetailService(
         val playPageUrl =
             libVioService.getSiteUrl() + (episode.flag5 ?: throw RuntimeException("播放源地址为空"))
         val body = Jsoup.connect(playPageUrl)
-            .feignChrome()
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val playerAAAAJson = PLAYER_AAAA_REGEX.find(body.html())?.groups?.get(1)?.value
@@ -143,7 +145,7 @@ class MediaDetailService(
             .build()
             .toString()
         val body = Jsoup.connect(url)
-            .feignChrome(referrer)
+            .feignChrome(referrer = referrer, cookieStore = cookieStore)
             .get()
             .body()
         val vid = VID_REGEX.find(body.html())?.groups?.get(1)?.value

@@ -4,17 +4,19 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
 import com.muedsa.tvbox.libvio.LibVidConst
-import com.muedsa.tvbox.libvio.feignChrome
+import com.muedsa.tvbox.tool.feignChrome
 import org.jsoup.Jsoup
+import java.net.CookieStore
 
 class MediaSearchService(
-    private val libVioService: LibVioService
+    private val libVioService: LibVioService,
+    private val cookieStore: CookieStore
 ) : IMediaSearchService {
 
     override suspend fun searchMedias(query: String): MediaCardRow {
         val body =
             Jsoup.connect("${libVioService.getSiteUrl()}/search/-------------.html?wd=$query")
-                .feignChrome()
+                .feignChrome(cookieStore = cookieStore)
                 .get()
                 .body()
         return MediaCardRow(

@@ -10,6 +10,8 @@ import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MainScreenService
 import com.muedsa.tvbox.libvio.service.MediaDetailService
 import com.muedsa.tvbox.libvio.service.MediaSearchService
+import com.muedsa.tvbox.tool.PluginCookieStore
+import com.muedsa.tvbox.tool.SharedCookieSaver
 
 class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxContext) {
 
@@ -19,11 +21,26 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
 
     override suspend fun onLaunched() {}
 
+    private val cookieCookie by lazy { PluginCookieStore(saver = SharedCookieSaver(store = tvBoxContext.store)) }
     private val libVioService by lazy { LibVioService() }
-
-    private val mainScreenService by lazy { MainScreenService(libVioService) }
-    private val mediaDetailService by lazy { MediaDetailService(libVioService) }
-    private val mediaSearchService by lazy { MediaSearchService(libVioService) }
+    private val mainScreenService by lazy {
+        MainScreenService(
+            libVioService = libVioService,
+            cookieStore = cookieCookie
+        )
+    }
+    private val mediaDetailService by lazy {
+        MediaDetailService(
+            libVioService = libVioService,
+            cookieStore = cookieCookie
+        )
+    }
+    private val mediaSearchService by lazy {
+        MediaSearchService(
+            libVioService = libVioService,
+            cookieStore = cookieCookie
+        )
+    }
 
     override fun provideMainScreenService(): IMainScreenService = mainScreenService
 

@@ -4,17 +4,19 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.libvio.LibVidConst
-import com.muedsa.tvbox.libvio.feignChrome
+import com.muedsa.tvbox.tool.feignChrome
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import java.net.CookieStore
 
 class MainScreenService(
-    private val libVioService: LibVioService
+    private val libVioService: LibVioService,
+    private val cookieStore: CookieStore
 ) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
         val body = Jsoup.connect(libVioService.getSiteUrl())
-            .feignChrome()
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val bdEl = body.selectFirst(".container .row .stui-pannel .stui-pannel__hd .container .stui-pannel__bd")
