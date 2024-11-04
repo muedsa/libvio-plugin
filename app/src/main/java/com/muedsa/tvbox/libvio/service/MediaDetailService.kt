@@ -149,7 +149,8 @@ class MediaDetailService(
         val vid = VID_REGEX.find(body.html())?.groups?.get(1)?.value
             ?: throw RuntimeException("解析播放源地址失败 vid")
         return MediaHttpSource(
-            url = vid
+            url = vid,
+            httpHeaders = mapOf("Referer" to referrer)
         )
     }
 

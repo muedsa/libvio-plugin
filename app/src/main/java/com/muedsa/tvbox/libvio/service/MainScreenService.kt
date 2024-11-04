@@ -50,8 +50,8 @@ class MainScreenService(
 
     private fun parseVodList(vodListEl: Element): List<MediaCard> {
         return vodListEl.select("li .stui-vodlist__box").mapNotNull {
-            val thumbEl = vodListEl.selectFirst(".stui-vodlist__box .stui-vodlist__thumb")
-            val titleEl = vodListEl.selectFirst(".stui-vodlist__detail h4")
+            val thumbEl = it.selectFirst(".stui-vodlist__box .stui-vodlist__thumb")
+            val titleEl = it.selectFirst(".stui-vodlist__detail h4")
             if (titleEl != null && thumbEl != null) {
                 val dUrl = thumbEl.attr("href")
                 MediaCard(
