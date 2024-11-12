@@ -10,8 +10,9 @@ import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MainScreenService
 import com.muedsa.tvbox.libvio.service.MediaDetailService
 import com.muedsa.tvbox.libvio.service.MediaSearchService
-import com.muedsa.tvbox.tool.PluginCookieStore
+import com.muedsa.tvbox.tool.PluginCookieJar
 import com.muedsa.tvbox.tool.SharedCookieSaver
+import com.muedsa.tvbox.tool.createOkHttpClient
 
 class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxContext) {
 
@@ -20,25 +21,31 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
     override suspend fun onInit() {}
 
     override suspend fun onLaunched() {}
-
-    private val cookieCookie by lazy { PluginCookieStore(saver = SharedCookieSaver(store = tvBoxContext.store)) }
-    private val libVioService by lazy { LibVioService() }
+    private val okHttpClient by lazy {
+        createOkHttpClient(
+            debug = tvBoxContext.debug,
+            cookieJar = PluginCookieJar(
+                saver = SharedCookieSaver(store = tvBoxContext.store)
+            )
+        )
+    }
+    private val libVioService by lazy { LibVioService(okHttpClient = okHttpClient) }
     private val mainScreenService by lazy {
         MainScreenService(
             libVioService = libVioService,
-            cookieStore = cookieCookie
+            okHttpClient = okHttpClient
         )
     }
     private val mediaDetailService by lazy {
         MediaDetailService(
             libVioService = libVioService,
-            cookieStore = cookieCookie
+            okHttpClient = okHttpClient
         )
     }
     private val mediaSearchService by lazy {
         MediaSearchService(
             libVioService = libVioService,
-            cookieStore = cookieCookie
+            okHttpClient = okHttpClient
         )
     }
 

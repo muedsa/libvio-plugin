@@ -13,21 +13,24 @@ import com.muedsa.tvbox.libvio.model.PlayerAAAA
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.delay
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.jsoup.Jsoup
-import java.net.CookieStore
+import okhttp3.OkHttpClient
 import java.util.StringJoiner
 
 class MediaDetailService(
     private val libVioService: LibVioService,
-    private val cookieStore: CookieStore
+    private val okHttpClient: OkHttpClient
 ) : IMediaDetailService {
 
     override suspend fun getDetailData(mediaId: String, detailUrl: String): MediaDetail {
-        val body = Jsoup.connect("${libVioService.getSiteUrl()}$detailUrl")
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = "${libVioService.getSiteUrl()}$detailUrl".toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val contentEl =
             body.selectFirst(".container .row .stui-pannel .stui-pannel-box .stui-content")
@@ -118,9 +121,10 @@ class MediaDetailService(
     ): MediaHttpSource {
         val playPageUrl =
             libVioService.getSiteUrl() + (episode.flag5 ?: throw RuntimeException("播放源地址为空"))
-        val body = Jsoup.connect(playPageUrl)
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = playPageUrl.toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val playerAAAAJson = PLAYER_AAAA_REGEX.find(body.html())?.groups?.get(1)?.value
             ?: throw RuntimeException("解析播放源地址失败 player_aaaa")
@@ -144,9 +148,10 @@ class MediaDetailService(
             .addQueryParameter("nid", playerAAAA.nid.toString())
             .build()
             .toString()
-        val body = Jsoup.connect(url)
-            .feignChrome(referrer = referrer, cookieStore = cookieStore)
-            .get()
+        val body = url.toRequestBuild()
+            .feignChrome(referer = referrer)
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val vid = VID_REGEX.find(body.html())?.groups?.get(1)?.value
             ?: throw RuntimeException("解析播放源地址失败 vid")

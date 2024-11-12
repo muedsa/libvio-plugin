@@ -1,20 +1,26 @@
 package com.muedsa.tvbox.libvio.service
 
 import com.muedsa.tvbox.tool.feignChrome
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jsoup.Jsoup
+import okhttp3.OkHttpClient
 
-class LibVioService {
+class LibVioService(
+    private val okHttpClient: OkHttpClient
+) {
 
     private var siteUrl: String? = null
     private val mutex = Mutex()
 
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
-            val body = Jsoup.connect("https://libfabu.com")
+            val body = "https://libfabu.com".toRequestBuild()
                 .feignChrome()
-                .get()
+                .get(okHttpClient = okHttpClient)
+                .parseHtml()
                 .body()
             siteUrl = body.selectFirst("#all .content .content-top ul li")
                 ?.select("a[href]")

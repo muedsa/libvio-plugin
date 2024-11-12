@@ -5,19 +5,22 @@ import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.libvio.LibVidConst
 import com.muedsa.tvbox.tool.feignChrome
-import org.jsoup.Jsoup
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
+import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
-import java.net.CookieStore
 
 class MainScreenService(
     private val libVioService: LibVioService,
-    private val cookieStore: CookieStore
+    private val okHttpClient: OkHttpClient
 ) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
-        val body = Jsoup.connect(libVioService.getSiteUrl())
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = "${libVioService.getSiteUrl()}/".toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val bdEl = body.selectFirst(".container .row .stui-pannel .stui-pannel__hd .container .stui-pannel__bd")
             ?: throw RuntimeException("解析首页失败")
