@@ -4,6 +4,7 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -20,6 +21,7 @@ class MediaSearchService(
             "${libVioService.getSiteUrl()}/search/-------------.html?wd=$query".toRequestBuild()
                 .feignChrome()
                 .get(okHttpClient = okHttpClient)
+                .checkSuccess()
                 .parseHtml()
                 .body()
         return MediaCardRow(

@@ -4,6 +4,7 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -20,6 +21,7 @@ class MainScreenService(
         val body = "${libVioService.getSiteUrl()}/".toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val bdEl = body.selectFirst(".container .row .stui-pannel .stui-pannel__hd .container .stui-pannel__bd")

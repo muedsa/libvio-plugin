@@ -1,5 +1,6 @@
 package com.muedsa.tvbox.libvio.service
 
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -20,6 +21,7 @@ class LibVioService(
             val body = "https://libfabu.com".toRequestBuild()
                 .feignChrome()
                 .get(okHttpClient = okHttpClient)
+                .checkSuccess()
                 .parseHtml()
                 .body()
             siteUrl = body.selectFirst("#all .content .content-top ul li")

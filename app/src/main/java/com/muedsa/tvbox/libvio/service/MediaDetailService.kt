@@ -11,6 +11,7 @@ import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.libvio.LibVidConst
 import com.muedsa.tvbox.libvio.model.PlayerAAAA
 import com.muedsa.tvbox.tool.LenientJson
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
@@ -30,6 +31,7 @@ class MediaDetailService(
         val body = "${libVioService.getSiteUrl()}$detailUrl".toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val contentEl =
@@ -124,6 +126,7 @@ class MediaDetailService(
         val body = playPageUrl.toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val playerAAAAJson = PLAYER_AAAA_REGEX.find(body.html())?.groups?.get(1)?.value
@@ -151,6 +154,7 @@ class MediaDetailService(
         val body = url.toRequestBuild()
             .feignChrome(referer = referrer)
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val vid = VID_REGEX.find(body.html())?.groups?.get(1)?.value
