@@ -10,9 +10,11 @@ import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MainScreenService
 import com.muedsa.tvbox.libvio.service.MediaDetailService
 import com.muedsa.tvbox.libvio.service.MediaSearchService
+import com.muedsa.tvbox.tool.IPv6Checker
 import com.muedsa.tvbox.tool.PluginCookieJar
 import com.muedsa.tvbox.tool.SharedCookieSaver
 import com.muedsa.tvbox.tool.createOkHttpClient
+import java.util.concurrent.TimeUnit
 
 class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxContext) {
 
@@ -26,8 +28,12 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
             debug = tvBoxContext.debug,
             cookieJar = PluginCookieJar(
                 saver = SharedCookieSaver(store = tvBoxContext.store)
-            )
-        )
+            ),
+            onlyIpv4 = tvBoxContext.iPv6Status != IPv6Checker.IPv6Status.SUPPORTED
+        ) {
+            callTimeout(40, TimeUnit.SECONDS)
+            readTimeout(60, TimeUnit.SECONDS)
+        }
     }
     private val libVioService by lazy { LibVioService(okHttpClient = okHttpClient) }
     private val mainScreenService by lazy {
