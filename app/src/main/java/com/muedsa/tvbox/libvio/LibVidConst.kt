@@ -249,11 +249,12 @@ object LibVidConst {
                     )
                 )
                 val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-                for (year in 1998..currentYear) {
-                    MediaCatalogOptionItem(
-                        name = "$year",
-                        value = "$year",
-                        defaultChecked = true,
+                for (year in currentYear downTo 1998) {
+                    add(
+                        MediaCatalogOptionItem(
+                            name = "$year",
+                            value = "$year",
+                        )
                     )
                 }
             }
