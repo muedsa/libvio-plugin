@@ -4,10 +4,12 @@ import com.muedsa.tvbox.api.plugin.IPlugin
 import com.muedsa.tvbox.api.plugin.PluginOptions
 import com.muedsa.tvbox.api.plugin.TvBoxContext
 import com.muedsa.tvbox.api.service.IMainScreenService
+import com.muedsa.tvbox.api.service.IMediaCatalogService
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.api.service.IMediaSearchService
 import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MainScreenService
+import com.muedsa.tvbox.libvio.service.MediaCatalogService
 import com.muedsa.tvbox.libvio.service.MediaDetailService
 import com.muedsa.tvbox.libvio.service.MediaSearchService
 import com.muedsa.tvbox.tool.IPv6Checker
@@ -54,10 +56,18 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
             okHttpClient = okHttpClient
         )
     }
+    private val mediaCatalogService by lazy {
+        MediaCatalogService(
+            libVioService = libVioService,
+            okHttpClient = okHttpClient
+        )
+    }
 
     override fun provideMainScreenService(): IMainScreenService = mainScreenService
 
     override fun provideMediaDetailService(): IMediaDetailService = mediaDetailService
 
     override fun provideMediaSearchService(): IMediaSearchService = mediaSearchService
+
+    override fun provideMediaCatalogService(): IMediaCatalogService = mediaCatalogService
 }
