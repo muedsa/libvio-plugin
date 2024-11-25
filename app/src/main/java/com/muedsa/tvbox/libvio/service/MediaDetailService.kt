@@ -54,6 +54,9 @@ class MediaDetailService(
                 .mapNotNull { vodListEl ->
                     val playSourceName =
                         vodListEl.selectFirst(".stui-pannel__head h3")?.text()?.trim()
+                    if (playSourceName.isNullOrEmpty() || playSourceName.startsWith("视频下载")) {
+                        return@mapNotNull null
+                    }
                     val episodeList = vodListEl.select(".stui-content__playlist li")
                         .mapNotNull { liEl ->
                             val aEL = liEl.selectFirst("a[href]")
@@ -66,7 +69,7 @@ class MediaDetailService(
                                 )
                             } else null
                         }
-                    if (!playSourceName.isNullOrEmpty() && episodeList.isNotEmpty()) {
+                    if (episodeList.isNotEmpty()) {
                         MediaPlaySource(
                             id = playSourceName,
                             name = playSourceName,
