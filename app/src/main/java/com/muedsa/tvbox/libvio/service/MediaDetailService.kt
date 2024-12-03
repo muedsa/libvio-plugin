@@ -1,5 +1,7 @@
 package com.muedsa.tvbox.libvio.service
 
+import com.muedsa.tvbox.api.data.DanmakuData
+import com.muedsa.tvbox.api.data.DanmakuDataFlow
 import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.data.MediaDetail
@@ -167,6 +169,11 @@ class MediaDetailService(
             httpHeaders = mapOf("Referer" to referrer)
         )
     }
+
+    override suspend fun getEpisodeDanmakuDataList(episode: MediaEpisode): List<DanmakuData> =
+        emptyList()
+
+    override suspend fun getEpisodeDanmakuDataFlow(episode: MediaEpisode): DanmakuDataFlow? = null
 
     companion object {
         val PLAYER_AAAA_REGEX =
