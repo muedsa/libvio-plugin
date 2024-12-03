@@ -22,6 +22,7 @@ import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.delay
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
+import timber.log.Timber
 import java.util.StringJoiner
 
 class MediaDetailService(
@@ -143,19 +144,17 @@ class MediaDetailService(
                 urlNext = playerAAAA.urlNext.decodeBase64ToStr()
             )
         }
-        return step2(playerAAAA, referrer = playPageUrl)
+        Timber.i("playerAAAA = $playerAAAA")
+        val parseFun = parseFunctionMap[playerAAAA.from]
+            ?: throw RuntimeException("解析地址失败, 不支持的播放源")
+        delay(200)
+        return parseFun(playerAAAA, playPageUrl)
     }
 
-    private suspend fun step2(playerAAAA: PlayerAAAA, referrer: String): MediaHttpSource {
-        delay(200)
-        val url = "${libVioService.getSiteUrl()}/vid/plyr/vr2.php".toHttpUrl()
-            .newBuilder()
-            .addQueryParameter("url", playerAAAA.url)
-            .addQueryParameter("next", playerAAAA.urlNext)
-            .addQueryParameter("id", playerAAAA.id)
-            .addQueryParameter("nid", playerAAAA.nid.toString())
-            .build()
-            .toString()
+    private fun parseVidFromUrl(
+        url: String,
+        referrer: String
+    ): MediaHttpSource {
         val body = url.toRequestBuild()
             .feignChrome(referer = referrer)
             .get(okHttpClient = okHttpClient)
@@ -169,6 +168,229 @@ class MediaDetailService(
             httpHeaders = mapOf("Referer" to referrer)
         )
     }
+
+    private val parseFunctionMap = mapOf<String, suspend (PlayerAAAA, String) -> MediaHttpSource>(
+        "vr2" to { playerAAAA, referrer ->
+            // src="/vid/plyr/vr2.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/plyr/vr2.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "LINE405" to { playerAAAA, referrer ->
+            // src="/vid/plyr/?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/plyr/".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "hd01" to { playerAAAA, referrer ->
+            // src="/vid/plyr/index2.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/plyr/index2.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "mux" to { playerAAAA, referrer ->
+            // src="/vid/plyr/index3.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/plyr/index3.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "yd189" to { playerAAAA, referrer ->
+            // src="/vid/yd.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/yd.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "aliyunline" to { playerAAAA, referrer ->
+            // src="/vid/ty.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "tianyi" to { playerAAAA, referrer ->
+            // src="/vid/ty.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "tianyi_625" to { playerAAAA, referrer ->
+            // src="/vid/ty.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "aliyunline2" to { playerAAAA, referrer ->
+            // src="/vid/ty2.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty2.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "aliyunline3" to { playerAAAA, referrer ->
+            // src="/vid/ty3.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty3.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "ty_new1" to { playerAAAA, referrer ->
+            //  src="/vid/ty4.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/ty4.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "LINE400" to { playerAAAA, referrer ->
+            // src="/vid/lb2.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/lb2.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "LINE407" to { playerAAAA, referrer ->
+            // src="/vid/lb2.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/lb2.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "LINE500" to { playerAAAA, referrer ->
+            // src="/vid/lb3.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            parseVidFromUrl(
+                url = "${libVioService.getSiteUrl()}/vid/lb3.php".toHttpUrl()
+                    .newBuilder()
+                    .addQueryParameter("url", playerAAAA.url)
+                    .addQueryParameter("next", playerAAAA.urlNext)
+                    .addQueryParameter("id", playerAAAA.id)
+                    .addQueryParameter("nid", playerAAAA.nid.toString())
+                    .build()
+                    .toString(),
+                referrer = referrer
+            )
+        },
+        "tweb" to { playerAAAA, referrer ->
+            // src="https://testtestbd1.chinaeast2.cloudapp.chinacloudapi.cn:9091'+MacPlayer.PlayUrl+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+        "aishare" to { playerAAAA, referrer ->
+            // src="https://p2.cfnode1.xyz/aishare.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+        "aitemp" to { playerAAAA, referrer ->
+            // src="https://testtestbd1.chinaeast2.cloudapp.chinacloudapi.cn:9091'+MacPlayer.PlayUrl+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+        "aliyunpan" to { playerAAAA, referrer ->
+            // src="https://cbsh-d0145678.chinaeast2.cloudapp.chinacloudapi.cn:1301/watch?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+        "ali" to { playerAAAA, referrer ->
+            // src="https://p.cfnode1.xyz/ai.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+        "LINE408" to { playerAAAA, referrer ->
+            // src="https://sh-data-s01.chinaeast2.cloudapp.chinacloudapi.cn/ck.php?url='+MacPlayer.PlayUrl+'&next='+MacPlayer.PlayLinkNext+'&id='+MacPlayer.Id+'&nid='+MacPlayer.Nid+'"
+            throw RuntimeException("解析播放源地址失败, 不支持的播放源")
+        },
+    )
 
     override suspend fun getEpisodeDanmakuDataList(episode: MediaEpisode): List<DanmakuData> =
         emptyList()
