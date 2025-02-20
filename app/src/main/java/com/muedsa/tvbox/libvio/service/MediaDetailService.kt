@@ -153,19 +153,24 @@ class MediaDetailService(
 
     private fun parseVidFromUrl(
         url: String,
-        referrer: String
+        referrer: String,
     ): MediaHttpSource {
-        val body = url.toRequestBuild()
+        val doc = url.toRequestBuild()
             .feignChrome(referer = referrer)
             .get(okHttpClient = okHttpClient)
             .checkSuccess()
             .parseHtml()
-            .body()
+        val head = doc.head()
+        val body = doc.body()
         val vid = VID_REGEX.find(body.html())?.groups?.get(1)?.value
             ?: throw RuntimeException("解析播放源地址失败 vid")
+        var mediaSourceWithReferrer = true
+        head.selectFirst("meta[name=\"referrer\"]")?.let {
+            mediaSourceWithReferrer = it.attr("content") != "no-referrer"
+        }
         return MediaHttpSource(
             url = vid,
-            httpHeaders = mapOf("Referer" to referrer)
+            httpHeaders = if (mediaSourceWithReferrer) mapOf("Referer" to referrer) else null,
         )
     }
 
