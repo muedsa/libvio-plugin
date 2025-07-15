@@ -1,9 +1,11 @@
 package com.muedsa.tvbox.libvio.service
 
 import com.muedsa.tvbox.tool.checkSuccess
+import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.stringBody
 import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,6 +21,9 @@ class LibVioService(
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
             siteUrl = checkUrl(getSiteUrls())
+            if (siteUrl.isNullOrBlank()) {
+                siteUrl = checkUrl(getUrlsFromGithubReop())
+            }
             if (siteUrl.isNullOrBlank()) {
                 siteUrl = checkUrl(URLS)
             }
@@ -75,13 +80,36 @@ class LibVioService(
         } catch (_: Throwable) { emptyList() }
     }
 
+    fun getUrlsFromGithubReop(): List<String> {
+        var content = ""
+        for (url in GITHUB_REPO_FILE_URLS) {
+            try {
+                content = url.toRequestBuild()
+                    .feignChrome()
+                    .get(okHttpClient = okHttpClient)
+                    .checkSuccess()
+                    .stringBody()
+                break
+            } catch (_: Throwable) {}
+        }
+        return if (content.isBlank()) {
+            emptyList()
+        } else {
+            content.split("\n").map { it.decodeBase64ToStr() }
+        }
+    }
+
     companion object {
         val RELEASE_PAGE_URLS = listOf(
             "https://lib.ifabu.vip",
             "https://libvio.app",
             "https://libfabu.com",
         )
-
+        val GITHUB_REPO_FILE_URLS = listOf(
+            "https://ghfast.top/https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
+            "https://gh-proxy.com/raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
+            "https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
+        )
         val URLS = listOf(
             "https://libvio.cc",
             "https://libvio.cloud",
