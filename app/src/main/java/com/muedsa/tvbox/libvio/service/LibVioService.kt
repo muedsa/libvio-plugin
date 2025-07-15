@@ -18,18 +18,75 @@ class LibVioService(
 
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
-            val body = "https://libfabu.com".toRequestBuild()
+            siteUrl = checkUrl(getSiteUrls())
+            if (siteUrl.isNullOrBlank()) {
+                siteUrl = checkUrl(URLS)
+            }
+            if (siteUrl.isNullOrBlank()) {
+                throw RuntimeException("从发布页获取可用地址失败")
+            }
+        }
+        return siteUrl!!
+    }
+
+    fun checkUrl(urls: List<String>): String {
+        var url = ""
+        for (urlFromFromReleasePage in urls) {
+            try {
+                url = checkUrl(urlFromFromReleasePage)
+                break
+            } catch (_: Throwable) {}
+        }
+        return url
+    }
+
+    fun checkUrl(url: String): String {
+        if (url.isBlank()) throw RuntimeException("url is empty")
+        url.toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .checkSuccess()
+        return url
+    }
+
+    private fun getSiteUrls(): List<String> {
+        for (releasePageUrl in RELEASE_PAGE_URLS) {
+            val siteUrls = getSiteUrls(releasePageUrl)
+            if (siteUrls.isNotEmpty()) {
+                return siteUrls
+            }
+        }
+        return emptyList()
+    }
+
+    private fun getSiteUrls(url: String): List<String> {
+        return try {
+            val body = url.toRequestBuild()
                 .feignChrome()
                 .get(okHttpClient = okHttpClient)
                 .checkSuccess()
                 .parseHtml()
                 .body()
-            siteUrl = body.selectFirst("#all .content .content-top ul li")
-                ?.select("a[href]")
+            body.selectFirst("#all .content .content-top ul li")
+                ?.select(">a[href]")
                 ?.map { it.attr("href").removeSuffix("/") }
-                ?.firstOrNull()
-                ?: throw RuntimeException("从发布页获取可用地址失败")
-        }
-        return siteUrl!!
+                ?.filter { it.startsWith("https://") }
+                ?: emptyList()
+        } catch (_: Throwable) { emptyList() }
+    }
+
+    companion object {
+        val RELEASE_PAGE_URLS = listOf(
+            "https://lib.ifabu.vip",
+            "https://libvio.app",
+            "https://libfabu.com",
+        )
+
+        val URLS = listOf(
+            "https://libvio.cc",
+            "https://libvio.cloud",
+            "https://libvio.mov",
+            "https://libvio.vip",
+        )
     }
 }
