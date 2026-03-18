@@ -111,10 +111,10 @@ class LibVioService(
             "https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
         )
         val URLS = listOf(
-            "https://libvio.cc",
-            "https://libvio.cloud",
-            "https://libvio.mov",
-            "https://libvio.vip",
+            "https://libvio.run",
+            "https://www.libvio.mov",
+            "https://www.libvio.la",
+            "https://www.libvio.life",
         )
     }
 }
