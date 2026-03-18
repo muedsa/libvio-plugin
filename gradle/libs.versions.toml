@@ -1,11 +1,12 @@
 [versions]
-agp = "8.13.0"
-kotlin = "2.1.0"
+agp = "8.13.2"
+kotlin = "2.3.20"
 junit4 = "4.13.2"
-kotlinxCoroutinesTest = "1.9.0"
+kotlinxCoroutinesTest = "1.10.2"
 smaliDexlib2 = "3.0.9"
-androidxTest = "1.6.1"
-robolectric = "4.15.1"
+androidxTest = "1.7.0"
+robolectric = "4.16.1"
+kotlinBinaryCompatibilityValidator = "0.18.1"
 
 [libraries]
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
@@ -19,3 +20,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "kotlinBinaryCompatibilityValidator"}
