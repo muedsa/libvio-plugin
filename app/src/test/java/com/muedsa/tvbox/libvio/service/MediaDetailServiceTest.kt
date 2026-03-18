@@ -15,11 +15,14 @@ import kotlin.intArrayOf
 @Config(sdk = [28])
 class MediaDetailServiceTest {
 
-    private val service = TestPlugin.provideMediaDetailService()
+    private val mainScreenService = TestPlugin.provideMainScreenService()
+
+    private val mediaDetailService = TestPlugin.provideMediaDetailService()
 
     @Test
     fun getDetailData_test() = runTest{
-        val detail = service.getDetailData("/detail/714891450.html", "/detail/714891450.html")
+        val mediaCard = mainScreenService.getRowsData()[0].list[0]
+        val detail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
         check(detail.id.isNotEmpty())
         check(detail.title.isNotEmpty())
         check(detail.detailUrl.isNotEmpty())
@@ -46,12 +49,13 @@ class MediaDetailServiceTest {
 
     @Test
     fun getEpisodePlayInfo_test() = runTest{
-        val detail = service.getDetailData("/detail/714891450.html", "/detail/714891450.html")
-        check(detail.playSourceList.isNotEmpty())
-        check(detail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
-        val mediaPlaySource = detail.playSourceList[0]
+        val mediaCard = mainScreenService.getRowsData()[0].list[0]
+        val mediaDetail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
+        check(mediaDetail.playSourceList.isNotEmpty())
+        check(mediaDetail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
+        val mediaPlaySource = mediaDetail.playSourceList[0]
         val mediaEpisode = mediaPlaySource.episodeList[0]
-        val playInfo = service.getEpisodePlayInfo(mediaPlaySource, mediaEpisode)
+        val playInfo = mediaDetailService.getEpisodePlayInfo(mediaPlaySource, mediaEpisode)
         check(playInfo.url.isNotEmpty())
     }
 

@@ -8,10 +8,12 @@ import com.muedsa.tvbox.api.data.MediaDetail
 import com.muedsa.tvbox.api.data.MediaEpisode
 import com.muedsa.tvbox.api.data.MediaHttpSource
 import com.muedsa.tvbox.api.data.MediaPlaySource
+import com.muedsa.tvbox.api.data.MediaSniffingSource
 import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.libvio.LibVidConst
 import com.muedsa.tvbox.libvio.model.PlayerAAAA
+import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.decodeBase64ToStr
@@ -36,51 +38,54 @@ class MediaDetailService(
             .checkSuccess()
             .parseHtml()
             .body()
-        val contentEl =
-            body.selectFirst(".container .row .stui-pannel .stui-pannel-box .stui-content")
+        val heroEl =
+            body.selectFirst(".container .row .stui-pannel .stui-pannel-box .stui-pannel__bd .vod-hero .vod-hero__inner")
                 ?: throw RuntimeException("解析视频详情失败 $detailUrl")
-        val imgUrl = contentEl.selectFirst(".stui-content__thumb img")
+        val imgUrl = heroEl.selectFirst(".vod-poster .vod-poster__wrap img")
             ?.attr("data-original")
-            ?: throw RuntimeException("解析视频详情失败 img $detailUrl")
-        val title = contentEl.selectFirst(".stui-content__detail h1")?.text()?.trim()
-            ?: throw RuntimeException("解析视频详情失败 title $detailUrl")
+            ?: ""
+        val title = heroEl.selectFirst(".vod-info h1")?.text()?.trim()
+            ?: ""
+        var subTitle: String? = null
         val detailJoiner = StringJoiner("\n")
-        contentEl.select(".stui-content__detail .data").map {
-            detailJoiner.add(it.text().trim())
+        heroEl.select(".vod-info .vod-meta").forEachIndexed { index, el ->
+            if (index > 0) {
+                el.select(".meta-item").forEach { detailJoiner.add(it.text().trim()) }
+            } else {
+                subTitle = el.select(".meta-item").joinToString(" | ") { it.text().trim() }
+            }
         }
-        contentEl.selectFirst(".stui-content__detail .detail .detail-content")?.let {
+        heroEl.selectFirst(".vod-info .vod-desc .detail-content")?.let {
             detailJoiner.add("简介：${it.text().trim()}")
         }
         val playSourceList =
-            body.select(".container .row .stui-pannel .stui-pannel-box .stui-vodlist__head")
-                .mapNotNull { vodListEl ->
-                    val playSourceName =
-                        vodListEl.selectFirst(".stui-pannel__head h3")?.text()?.trim()
-                    if (playSourceName.isNullOrEmpty() || playSourceName.startsWith("视频下载")) {
-                        return@mapNotNull null
-                    }
-                    val episodeList = vodListEl.select(".stui-content__playlist li")
-                        .mapNotNull { liEl ->
-                            val aEL = liEl.selectFirst("a[href]")
-                            if (aEL != null) {
-                                val eName = aEL.text().trim()
-                                MediaEpisode(
-                                    id = eName,
-                                    name = eName,
-                                    flag5 = aEL.attr("href")
-                                )
-                            } else null
-                        }
-                    if (episodeList.isNotEmpty()) {
-                        MediaPlaySource(
-                            id = playSourceName,
-                            name = playSourceName,
-                            episodeList = episodeList
-                        )
+            body.select(".container .row .stui-pannel .stui-pannel-box .stui-pannel__bd .playlist-panel")
+                .mapIndexedNotNull { index, playListEl ->
+                    if (!playListEl.hasClass(".netdisk-panel")) {
+                        val playSourceName = playListEl.selectFirst(".panel-head h3")?.text()?.trim() ?: "播放源${index + 1}"
+                        val episodeList = playListEl.select(".stui-content__playlist li")
+                            .mapNotNull { liEl ->
+                                val aEL = liEl.selectFirst("a[href]")
+                                if (aEL != null) {
+                                    val eName = aEL.text().trim()
+                                    MediaEpisode(
+                                        id = eName,
+                                        name = eName,
+                                        flag5 = aEL.attr("href")
+                                    )
+                                } else null
+                            }
+                        if (episodeList.isNotEmpty()) {
+                            MediaPlaySource(
+                                id = playSourceName,
+                                name = playSourceName,
+                                episodeList = episodeList
+                            )
+                        } else null
                     } else null
                 }
         val cardList =
-            body.select(".container .row .stui-pannel .stui-pannel-box .stui-vodlist li")
+            body.select(".container .row .stui-pannel .stui-pannel-box .stui-pannel__bd .recommend-panel .stui-vodlist li")
                 .mapNotNull { liEl ->
                     val thumbEl = liEl.selectFirst(".stui-vodlist__box .stui-vodlist__thumb")
                     val titleEl = liEl.selectFirst(".stui-vodlist__detail h4")
@@ -90,7 +95,7 @@ class MediaDetailService(
                             id = dUrl,
                             title = titleEl.text().trim(),
                             detailUrl = dUrl,
-                            subTitle = thumbEl.selectFirst(".text-right")?.text()?.trim(),
+                            subTitle = thumbEl.selectFirst(".pic-text")?.text()?.trim(),
                             coverImageUrl = thumbEl.attr("data-original")
                         )
                     } else null
@@ -98,7 +103,7 @@ class MediaDetailService(
         return MediaDetail(
             id = mediaId,
             title = title,
-            subTitle = null,
+            subTitle = subTitle,
             description = detailJoiner.toString(),
             detailUrl = detailUrl,
             backgroundImageUrl = imgUrl,
@@ -126,8 +131,22 @@ class MediaDetailService(
         playSource: MediaPlaySource,
         episode: MediaEpisode
     ): MediaHttpSource {
+        return try {
+            parseEpisodePlayInfo(episode = episode)
+        } catch (_: Throwable) {
+            MediaSniffingSource(
+                url = libVioService.getSiteUrl() +  (episode.flag5 ?: throw RuntimeException("播放源地址为空")),
+                httpHeaders = mapOf( "User-Agent" to ChromeUserAgent)
+            )
+        }
+    }
+
+    suspend fun parseEpisodePlayInfo(
+        episode: MediaEpisode
+    ): MediaHttpSource {
+        val baseUrl = libVioService.getSiteUrl()
         val playPageUrl =
-            libVioService.getSiteUrl() + (episode.flag5 ?: throw RuntimeException("播放源地址为空"))
+            baseUrl + (episode.flag5 ?: throw RuntimeException("播放源地址为空"))
         val body = playPageUrl.toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
@@ -146,6 +165,17 @@ class MediaDetailService(
         Timber.i("playerAAAA = $playerAAAA")
         var url = PLAYER_URL_MAP[playerAAAA.from]
             ?: throw RuntimeException("解析地址失败, 不支持的播放源")
+        if (playerAAAA.url.startsWith("http")
+            && (playerAAAA.url.endsWith(".mp4", true)
+                    || playerAAAA.url.endsWith(".m3u8", true))) {
+            return MediaHttpSource(
+                url = playerAAAA.url,
+                httpHeaders = mapOf(
+                    "Referer" to baseUrl,
+                    "User-Agent" to ChromeUserAgent
+                ),
+            )
+        }
         url = url.replace("{url}", playerAAAA.url)
             .replace("{next}", playerAAAA.urlNext)
             .replace("{id}", playerAAAA.id)
@@ -155,14 +185,6 @@ class MediaDetailService(
             return parseVidFromUrl(
                 url = "${libVioService.getSiteUrl()}${url}",
                 referrer = playPageUrl,
-            )
-        }
-        if (playerAAAA.url.startsWith("http")
-            && (playerAAAA.url.endsWith(".mp4", true)
-                    || playerAAAA.url.endsWith(".mp4", true))) {
-            return MediaHttpSource(
-                url = playerAAAA.url,
-                httpHeaders = null,
             )
         }
         if (url.startsWith("/static/")) {

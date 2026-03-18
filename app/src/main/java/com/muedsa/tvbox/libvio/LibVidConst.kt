@@ -24,8 +24,12 @@ object LibVidConst {
                     value = "2",
                 ),
                 MediaCatalogOptionItem(
-                    name = "动漫",
+                    name = "综艺",
                     value = "3",
+                ),
+                MediaCatalogOptionItem(
+                    name = "动漫",
+                    value = "4",
                 ),
                 MediaCatalogOptionItem(
                     name = "日韩剧",
