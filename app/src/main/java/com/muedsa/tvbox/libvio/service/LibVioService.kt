@@ -10,6 +10,7 @@ import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
+import timber.log.Timber
 
 class LibVioService(
     private val okHttpClient: OkHttpClient
@@ -20,11 +21,13 @@ class LibVioService(
 
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
-            siteUrl = checkUrl(getSiteUrls())
+            siteUrl = checkUrl(getUrlsFromReleasePages())
             if (siteUrl.isNullOrBlank()) {
+                Timber.w("从发布页获取URL失败，尝试从Github仓库获取")
                 siteUrl = checkUrl(getUrlsFromGithubReop())
             }
             if (siteUrl.isNullOrBlank()) {
+                Timber.w("从Github仓库获取URL失败，尝试本地URL")
                 siteUrl = checkUrl(URLS)
             }
             if (siteUrl.isNullOrBlank()) {
@@ -54,9 +57,9 @@ class LibVioService(
         return url
     }
 
-    private fun getSiteUrls(): List<String> {
+    private fun getUrlsFromReleasePages(): List<String> {
         for (releasePageUrl in RELEASE_PAGE_URLS) {
-            val siteUrls = getSiteUrls(releasePageUrl)
+            val siteUrls = getUrlsFromReleasePage(releasePageUrl)
             if (siteUrls.isNotEmpty()) {
                 return siteUrls
             }
@@ -64,7 +67,7 @@ class LibVioService(
         return emptyList()
     }
 
-    private fun getSiteUrls(url: String): List<String> {
+    private fun getUrlsFromReleasePage(url: String): List<String> {
         return try {
             val body = url.toRequestBuild()
                 .feignChrome()
@@ -72,7 +75,7 @@ class LibVioService(
                 .checkSuccess()
                 .parseHtml()
                 .body()
-            body.selectFirst("#all .content .content-top ul li")
+            body.selectFirst("#mod-backup .url-grid")
                 ?.select(">a[href]")
                 ?.map { it.attr("href").removeSuffix("/") }
                 ?.filter { it.startsWith("https://") }

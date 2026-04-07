@@ -9,10 +9,12 @@ import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.stringBody
 import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.test.runTest
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLog
 import kotlin.intArrayOf
 
 @RunWith(RobolectricTestRunner::class)
@@ -61,5 +63,11 @@ class UrlContentValidator {
         val PLAYER_LIST_REGEX = "MacPlayerConfig\\.player_list=(\\{.*?\\}),MacPlayerConfig".toRegex()
         val IGNORE_PLAYERS = listOf("iframe", "banquan", "iframe", "dplayer", "uc", "kuake",
             "xunlei", "yc", "LINE1080")
+
+        @JvmStatic
+        @BeforeClass
+        fun setup() {
+            ShadowLog.stream = System.out
+        }
     }
 }
