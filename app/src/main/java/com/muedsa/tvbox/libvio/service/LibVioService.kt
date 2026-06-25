@@ -21,11 +21,7 @@ class LibVioService(
 
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
-            siteUrl = checkUrl(getUrlsFromReleasePages())
-            if (siteUrl.isNullOrBlank()) {
-                Timber.w("从发布页获取URL失败，尝试从Github仓库获取")
-                siteUrl = checkUrl(getUrlsFromGithubReop())
-            }
+            siteUrl = checkUrl(getUrlsFromGithubReop())
             if (siteUrl.isNullOrBlank()) {
                 Timber.w("从Github仓库获取URL失败，尝试本地URL")
                 siteUrl = checkUrl(URLS)
@@ -57,32 +53,6 @@ class LibVioService(
         return url
     }
 
-    private fun getUrlsFromReleasePages(): List<String> {
-        for (releasePageUrl in RELEASE_PAGE_URLS) {
-            val siteUrls = getUrlsFromReleasePage(releasePageUrl)
-            if (siteUrls.isNotEmpty()) {
-                return siteUrls
-            }
-        }
-        return emptyList()
-    }
-
-    private fun getUrlsFromReleasePage(url: String): List<String> {
-        return try {
-            val body = url.toRequestBuild()
-                .feignChrome()
-                .get(okHttpClient = okHttpClient)
-                .checkSuccess()
-                .parseHtml()
-                .body()
-            body.selectFirst("#mod-backup .url-grid")
-                ?.select(">a[href]")
-                ?.map { it.attr("href").removeSuffix("/") }
-                ?.filter { it.startsWith("https://") }
-                ?: emptyList()
-        } catch (_: Throwable) { emptyList() }
-    }
-
     fun getUrlsFromGithubReop(): List<String> {
         var content = ""
         for (url in GITHUB_REPO_FILE_URLS) {
@@ -103,21 +73,15 @@ class LibVioService(
     }
 
     companion object {
-        val RELEASE_PAGE_URLS = listOf(
-            "https://lib.ifabu.vip",
-            "https://libvio.app",
-            "https://libfabu.com",
-        )
         val GITHUB_REPO_FILE_URLS = listOf(
             "https://ghfast.top/https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
             "https://gh-proxy.com/raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
             "https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
         )
         val URLS = listOf(
-            "https://libvio.run",
-            "https://www.libvio.mov",
-            "https://www.libvio.la",
-            "https://www.libvio.life",
+            "https://libvio.host",
+            "https://www.libvio.pw",
+            "https://www.libvios.com",
         )
     }
 }
