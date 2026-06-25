@@ -21,5 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "libvio-plugin"
 include(":app")
-include(":api")
-project(":api").projectDir = rootDir.resolve("./TvBoxPlugin/api/")
+includeBuild("TvBoxPlugin")

@@ -74,12 +74,12 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xnullability-annotations=@org.jspecify.annotations:warn")
     }
 }
 
 dependencies {
-    compileOnly(project(":api"))
-    testImplementation(project(":api"))
+    compileOnlyApi(libs.tvbox.api)
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
