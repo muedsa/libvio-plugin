@@ -68,7 +68,7 @@ androidComponents {
         val buildTypeName = variant.buildType ?: "unknown"
         variant.outputs.forEach { output ->
             val versionName = output.versionName.orNull ?: "0.0.0"
-            output.outputFileName = "${rootProject.name}-${versionName}-${buildTypeName}.apk"
+            output.outputFileName = "${rootProject.name}-${versionName}-${buildTypeName}.apk.tbp"
         }
     }
 }
