@@ -12,12 +12,12 @@ import com.muedsa.tvbox.api.data.MediaSniffingSource
 import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.libvio.feignChrome2
 import com.muedsa.tvbox.libvio.model.PlayerAAAA
 import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.decodeBase64ToStr
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
 import com.muedsa.tvbox.tool.toRequestBuild
@@ -33,7 +33,7 @@ class MediaDetailService(
 
     override suspend fun getDetailData(mediaId: String, detailUrl: String): MediaDetail {
         val body = "${libVioService.getSiteUrl()}$detailUrl".toRequestBuild()
-            .feignChrome()
+            .feignChrome2()
             .get(okHttpClient = okHttpClient)
             .checkSuccess()
             .parseHtml()
@@ -148,7 +148,7 @@ class MediaDetailService(
         val playPageUrl =
             baseUrl + (episode.flag5 ?: throw RuntimeException("播放源地址为空"))
         val body = playPageUrl.toRequestBuild()
-            .feignChrome()
+            .feignChrome2()
             .get(okHttpClient = okHttpClient)
             .checkSuccess()
             .parseHtml()
@@ -198,7 +198,7 @@ class MediaDetailService(
         referrer: String,
     ): MediaHttpSource {
         val doc = url.toRequestBuild()
-            .feignChrome(referer = referrer)
+            .feignChrome2(referer = referrer)
             .get(okHttpClient = okHttpClient)
             .checkSuccess()
             .parseHtml()

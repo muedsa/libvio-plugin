@@ -4,8 +4,8 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.libvio.feignChrome2
 import com.muedsa.tvbox.tool.checkSuccess
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
 import com.muedsa.tvbox.tool.toRequestBuild
@@ -14,12 +14,12 @@ import org.jsoup.nodes.Element
 
 class MainScreenService(
     private val libVioService: LibVioService,
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
 ) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
         val body = "${libVioService.getSiteUrl()}/".toRequestBuild()
-            .feignChrome()
+            .feignChrome2()
             .get(okHttpClient = okHttpClient)
             .checkSuccess()
             .parseHtml()

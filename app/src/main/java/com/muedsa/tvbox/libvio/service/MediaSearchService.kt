@@ -4,8 +4,8 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.libvio.feignChrome2
 import com.muedsa.tvbox.tool.checkSuccess
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
 import com.muedsa.tvbox.tool.toRequestBuild
@@ -19,7 +19,7 @@ class MediaSearchService(
     override suspend fun searchMedias(query: String): MediaCardRow {
         val body =
             "${libVioService.getSiteUrl()}/search/-------------.html?wd=$query".toRequestBuild()
-                .feignChrome()
+                .feignChrome2()
                 .get(okHttpClient = okHttpClient)
                 .checkSuccess()
                 .parseHtml()

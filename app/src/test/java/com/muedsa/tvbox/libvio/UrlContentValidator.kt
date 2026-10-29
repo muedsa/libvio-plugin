@@ -1,10 +1,7 @@
 package com.muedsa.tvbox.libvio
 
-import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MediaDetailService
 import com.muedsa.tvbox.tool.LenientJson
-import com.muedsa.tvbox.tool.createOkHttpClient
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.stringBody
 import com.muedsa.tvbox.tool.toRequestBuild
@@ -15,24 +12,17 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
-import kotlin.intArrayOf
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class UrlContentValidator {
 
-    private val okHttpClient = createOkHttpClient(debug = true)
-
-    private val libVioService = LibVioService(
-        okHttpClient = okHttpClient,
-    )
-
     @Test
     fun playerConfigJs_valid() = runTest{
-        val baseUrl = libVioService.getSiteUrl()
+        val baseUrl = TestLibVioService.getSiteUrl()
         val content = "${baseUrl}/static/js/playerconfig.js".toRequestBuild()
-            .feignChrome(referer = baseUrl)
-            .get(okHttpClient = okHttpClient)
+            .feignChrome2(referer = baseUrl)
+            .get(okHttpClient = TestOkHttpClient)
             .stringBody()
         val json = PLAYER_LIST_REGEX.find(content)?.groups[1]?.value
             ?: throw RuntimeException("PLAYER_LIST_REGEX fail")
@@ -48,10 +38,10 @@ class UrlContentValidator {
     }
 
     private fun playerJsValid(player: String, playerUrl: String) = runTest {
-        val baseUrl = libVioService.getSiteUrl()
+        val baseUrl = TestLibVioService.getSiteUrl()
         val content = "${baseUrl}/static/player/${player}.js".toRequestBuild()
-            .feignChrome(referer = baseUrl)
-            .get(okHttpClient = okHttpClient)
+            .feignChrome2(referer = baseUrl)
+            .get(okHttpClient = TestOkHttpClient)
             .stringBody()
         val path = playerUrl.replaceAfter("?", "")
             .removeSuffix("?")

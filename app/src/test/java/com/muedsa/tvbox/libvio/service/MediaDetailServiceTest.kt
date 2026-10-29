@@ -1,7 +1,8 @@
 package com.muedsa.tvbox.libvio.service
 
 import com.muedsa.tvbox.api.data.MediaCardType
-import com.muedsa.tvbox.libvio.TestPlugin
+import com.muedsa.tvbox.libvio.TestMainScreenService
+import com.muedsa.tvbox.libvio.TestMediaDetailService
 import com.muedsa.tvbox.libvio.checkMediaCard
 import com.muedsa.tvbox.libvio.checkMediaCardRow
 import kotlinx.coroutines.test.runTest
@@ -9,20 +10,15 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import kotlin.intArrayOf
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class MediaDetailServiceTest {
 
-    private val mainScreenService = TestPlugin.provideMainScreenService()
-
-    private val mediaDetailService = TestPlugin.provideMediaDetailService()
-
     @Test
     fun getDetailData_test() = runTest{
-        val mediaCard = mainScreenService.getRowsData()[0].list[0]
-        val detail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
+        val mediaCard = TestMainScreenService.getRowsData()[0].list[0]
+        val detail = TestMediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
         check(detail.id.isNotEmpty())
         check(detail.title.isNotEmpty())
         check(detail.detailUrl.isNotEmpty())
@@ -49,13 +45,13 @@ class MediaDetailServiceTest {
 
     @Test
     fun getEpisodePlayInfo_test() = runTest{
-        val mediaCard = mainScreenService.getRowsData()[0].list[0]
-        val mediaDetail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
+        val mediaCard = TestMainScreenService.getRowsData()[0].list[0]
+        val mediaDetail = TestMediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
         check(mediaDetail.playSourceList.isNotEmpty())
         check(mediaDetail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
         val mediaPlaySource = mediaDetail.playSourceList[0]
         val mediaEpisode = mediaPlaySource.episodeList[0]
-        val playInfo = mediaDetailService.getEpisodePlayInfo(mediaPlaySource, mediaEpisode)
+        val playInfo = TestMediaDetailService/**/.getEpisodePlayInfo(mediaPlaySource, mediaEpisode)
         check(playInfo.url.isNotEmpty())
     }
 

@@ -7,6 +7,7 @@ import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.api.service.IMediaCatalogService
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.api.service.IMediaSearchService
+import com.muedsa.tvbox.libvio.service.LibVioPoWChallengeService
 import com.muedsa.tvbox.libvio.service.LibVioService
 import com.muedsa.tvbox.libvio.service.MainScreenService
 import com.muedsa.tvbox.libvio.service.MediaCatalogService
@@ -25,11 +26,12 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
     override suspend fun onInit() {}
 
     override suspend fun onLaunched() {}
+    private val cookieSaver by lazy { SharedCookieSaver(store = tvBoxContext.store) }
     private val okHttpClient by lazy {
         createOkHttpClient(
             debug = tvBoxContext.debug,
             cookieJar = PluginCookieJar(
-                saver = SharedCookieSaver(store = tvBoxContext.store)
+                saver = cookieSaver
             ),
             onlyIpv4 = tvBoxContext.iPv6Status != IPv6Checker.IPv6Status.SUPPORTED
         ) {
@@ -37,7 +39,17 @@ class LibVioPlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCon
             readTimeout(60, TimeUnit.SECONDS)
         }
     }
-    private val libVioService by lazy { LibVioService(okHttpClient = okHttpClient) }
+    private val libVioPoWChallengeService by lazy {
+        LibVioPoWChallengeService(
+            cookieSaver = cookieSaver,
+        )
+    }
+    private val libVioService by lazy {
+        LibVioService(
+            libVioPoWChallengeService = libVioPoWChallengeService,
+            okHttpClient = okHttpClient,
+        )
+    }
     private val mainScreenService by lazy {
         MainScreenService(
             libVioService = libVioService,

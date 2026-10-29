@@ -6,8 +6,8 @@ import com.muedsa.tvbox.api.data.MediaCatalogOption
 import com.muedsa.tvbox.api.data.PagingResult
 import com.muedsa.tvbox.api.service.IMediaCatalogService
 import com.muedsa.tvbox.libvio.LibVidConst
+import com.muedsa.tvbox.libvio.feignChrome2
 import com.muedsa.tvbox.tool.checkSuccess
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
 import com.muedsa.tvbox.tool.toRequestBuild
@@ -43,7 +43,7 @@ class MediaCatalogService(
         val body =
             "${libVioService.getSiteUrl()}/show/$category-$region-$order-$genre-$language----$page---$year.html"
                 .toRequestBuild()
-                .feignChrome()
+                .feignChrome2()
                 .get(okHttpClient = okHttpClient)
                 .checkSuccess()
                 .parseHtml()

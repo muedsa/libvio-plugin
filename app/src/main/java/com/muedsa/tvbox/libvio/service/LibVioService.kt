@@ -1,10 +1,9 @@
 package com.muedsa.tvbox.libvio.service
 
+import com.muedsa.tvbox.libvio.feignChrome2
 import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.decodeBase64ToStr
-import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
-import com.muedsa.tvbox.tool.parseHtml
 import com.muedsa.tvbox.tool.stringBody
 import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.sync.Mutex
@@ -13,6 +12,7 @@ import okhttp3.OkHttpClient
 import timber.log.Timber
 
 class LibVioService(
+    private val libVioPoWChallengeService: LibVioPoWChallengeService,
     private val okHttpClient: OkHttpClient
 ) {
 
@@ -47,9 +47,15 @@ class LibVioService(
     fun checkUrl(url: String): String {
         if (url.isBlank()) throw RuntimeException("url is empty")
         url.toRequestBuild()
-            .feignChrome()
+            .feignChrome2()
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+            )
             .get(okHttpClient = okHttpClient)
-            .checkSuccess()
+            .checkSuccess {
+                libVioPoWChallengeService.challenge(it)
+            }
         return url
     }
 
@@ -58,7 +64,7 @@ class LibVioService(
         for (url in GITHUB_REPO_FILE_URLS) {
             try {
                 content = url.toRequestBuild()
-                    .feignChrome()
+                    .feignChrome2()
                     .get(okHttpClient = okHttpClient)
                     .checkSuccess()
                     .stringBody()
@@ -74,14 +80,14 @@ class LibVioService(
 
     companion object {
         val GITHUB_REPO_FILE_URLS = listOf(
-            "https://ghfast.top/https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
             "https://gh-proxy.com/raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
+            "https://ghfast.top/https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
             "https://raw.githubusercontent.com/muedsa/libvio-plugin/refs/heads/main/urls",
         )
         val URLS = listOf(
             "https://libvio.host",
-            "https://www.libvio.pw",
-            "https://www.libvios.com",
+            "https://www.libvio.to",
+            "https://libviobd.com",
         )
     }
 }

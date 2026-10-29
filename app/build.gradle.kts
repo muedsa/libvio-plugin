@@ -82,6 +82,7 @@ kotlin {
 
 dependencies {
     compileOnlyApi(libs.tvbox.api)
+    testImplementation(libs.tvbox.api)
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
